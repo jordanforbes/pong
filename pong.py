@@ -54,6 +54,31 @@ def checkEdgeCollision(ball, ballDirX, ballDirY):
 		ballDirX = ballDirX * -1
 	return ballDirX, ballDirY
 
+#collision with paddle
+def checkHitBall(ball, paddle1, paddle2, ballDirX):
+	if ballDirX == -1 and paddle1.right == ball.left and paddle1.top < ball.top and paddle1.bottom > ball.bottom:
+		return -1
+	elif ballDirX == 1 and paddle2.right == ball.right and paddle2.top < ball.top and paddle2.bottom > ball.bottom:
+		return -1
+	else: return 1
+
+
+#artificial intelligence
+def artificialIntelligence(ball, ballDirX, paddle2):
+	#if ball is moving away from paddle, center bat
+	if ballDirX == -1:
+		if paddle2.centery < (WINDOWHEIGHT/2):
+			paddle2.y += 1
+		elif paddle2.centery > (WINDOWHEIGHT/2):
+			paddle2.y -= 1
+	#if ball moving towards bat, track its movement
+	elif ballDirX == 1:
+		if paddle2.centery < ball.centery:
+			paddle2.y +=1
+		else:
+			paddle2.y -=1
+	return paddle2
+
 
 #main function 
 
@@ -87,12 +112,18 @@ def main():
 	drawPaddle(paddle2)
 	drawBall(ball)
 
+	pygame.mouse.set_visible(0) #make cursor invisible
 
 	while True: #main game loop
 		for event in pygame.event.get():
 			if event.type == QUIT:
 				pygame.quit()
 				sys.exit()
+			#mouse move commands
+			elif event.type == MOUSEMOTION:
+				mousex, mousey = event.pos
+				paddle1.y = mousey
+
 		drawArena()
 		drawPaddle(paddle1)
 		drawPaddle(paddle2)
@@ -100,6 +131,8 @@ def main():
 
 		ball = moveBall(ball, ballDirX, ballDirY)
 		ballDirX, ballDirY = checkEdgeCollision(ball, ballDirX, ballDirY)
+		ballDirX = ballDirX * checkHitBall(ball, paddle1, paddle2, ballDirX)
+		paddle2 = artificialIntelligence (ball,ballDirX, paddle2)
 
 		pygame.display.update()
 		FPSCLOCK.tick(FPS)
